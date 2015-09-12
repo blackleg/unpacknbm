@@ -1,5 +1,5 @@
 #!/bin/bash
-#     unpackndm is script to unpack netbeans module
+#     unpacknbm is script to unpack netbeans module
 #     Copyright (C) 2015 Blackleg
 #
 #     This program is free software; you can redistribute it and/or modify
@@ -21,39 +21,35 @@
 # functions
 error_mes() {
   case "${1}" in
-    "file"      ) echo "[EE] '${2}' is not a file";;
-    "folder"    ) echo "[EE] Not found '${2}'  folder";;
-    "installdir"    ) echo "[EE] Not found '${2}' folder to installation" && exit 1;;
-    "install"   ) echo "[EE] Installation folder is not set" && exit 1 ;;
-    "nbm"       ) echo "[EE] '${2}' is not a .nbm file";;
-    "unknown"   ) echo "[EE] Unknown error " && exit 1;;
-    "flag"      ) echo "[EE] Unknown flag" && exit 1;;
+    "file"       ) echo "[EE] '${2}' is not a file";;
+    "folder"     ) echo "[EE] Not found '${2}'  folder";;
+    "installdir" ) echo "[EE] Not found '${2}' folder to installation" && exit 1;;
+    "install"    ) echo "[EE] Installation folder is not set" && exit 1 ;;
+    "nbm"        ) echo "[EE] '${2}' is not a .nbm file";;
+    "unknown"    ) echo "[EE] Unknown error " && exit 1;;
+    "flag"       ) echo "[EE] Unknown flag" && exit 1;;
   esac
   return 1
 }
 
 func_help() {
-  echo -e "Script written on BASH to add a package in the repository"
-  echo -e "Usage: repo-insert [ -c /etc/repo-scripts.conf ] [ -v | --version ] [ -h | --help ] PACKAGE1 PACKAGE2 ..."
+  echo -e "Script to unpack netbeans modules"
+  echo -e "Usage: unpacknbm [ -c FOLDER ] [ -v | --version ] [ -h | --help ] PACKAGE1 PACKAGE2 ..."
   echo -e "Parametrs:"
-  echo -e "  PACKAGE1 PACKAGE2 ...     - Packages to add"
-  echo -e "  -c               PATH     - Path to configuration file. Default is '/etc/repo-scripts.conf'"
-  echo -e "  -h   --help               - Show this help and exit"
-  echo -e "  -d   --no-update          - No update the repository"
-  echo -e "  -s	  --check              - Check the repository after add package"
-  echo -e "       --nocolor            - Force disable colors"
+  echo -e "  PACKAGE1 PACKAGE2 ...     - Packages to unpack"
+  echo -e "  -i               PATH     - Path to install in a folder"
   echo -e "  -v   --version            - Show version and exit"
   echo -e "  -h   --help               - Show this help and exit"
   exit 0
 }
 
 func_ver() {
-  echo -e "repo-scripts"
-  echo -e "A set of scripts to work with your archlinux repository"
-  echo -e "Version : 1.5.3"
+  echo -e "unpacknbm"
+  echo -e "Script to unpack netbeans modules"
+  echo -e "Version : 1.0"
   echo -e "License : GPLv3"
-  echo -e "Author : Evgeniy Alexeev aka arcanis"
-  echo -e "E-mail : esalexeev (at) gmail (dot) com"
+  echo -e "Author : Blackleg"
+  echo -e "E-mail : blackleg@openaliasbox.org"
   exit 0
 }
 
@@ -136,7 +132,7 @@ for NBM in ${NBMLIST[@]}; do
 					if [ ${INSTALL} == "yes" ]; then
 						echo "[II] Installing '${FILENAME}' in '${INSTALLFOLDER}'"
 						cd ${ROOTDIR}
-						/usr/bin/mv -f  ${PACKAGESROOT}/${NETBEANSFOLDER}/* ${INSTALLFOLDER}/
+						/usr/bin/cp -ruv  ${PACKAGESROOT}/${NETBEANSFOLDER}/* ${INSTALLFOLDER}/
 						/usr/bin/rm -rf ${PACKAGESROOT}
 					fi
 				done
