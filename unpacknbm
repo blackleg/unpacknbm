@@ -108,7 +108,6 @@ until [ -z $1 ]; do
 done
 
 for NBM in ${NBMLIST[@]}; do
-	echo ${NBM}
 	cd ${ROOTDIR}
 	if  check_file ${NBM} ; then
 		if check_nbm ${NBM}; then
@@ -129,13 +128,13 @@ for NBM in ${NBMLIST[@]}; do
 					PACKAGEWHITOUTEXT=${PACKAGENAME%%.*}
 					cd ${PACKAGEDIR}
 					/usr/bin/unpack200 -r ${PACKAGENAME} "${PACKAGEWHITOUTEXT}.jar"
-					if [ ${INSTALL} == "yes" ]; then
-						echo "[II] Installing '${FILENAME}' in '${INSTALLFOLDER}'"
-						cd ${ROOTDIR}
-						/usr/bin/cp -ruv  ${PACKAGESROOT}/${NETBEANSFOLDER}/* ${INSTALLFOLDER}/
-						/usr/bin/rm -rf ${PACKAGESROOT}
-					fi
 				done
+				if [ ${INSTALL} == "yes" ]; then
+					echo "[II] Installing '${FILENAME}' in '${INSTALLFOLDER}'"
+					cd ${ROOTDIR}
+					/usr/bin/cp -ruv  ${PACKAGESROOT}/${NETBEANSFOLDER}/* ${INSTALLFOLDER}/
+					/usr/bin/rm -rf ${PACKAGESROOT}
+				fi
 			fi
 		fi
 	fi
