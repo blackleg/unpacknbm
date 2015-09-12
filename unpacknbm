@@ -1,0 +1,150 @@
+#!/bin/bash
+#     unpackndm is script to unpack netbeans module
+#     Copyright (C) 2015 Blackleg
+#
+#     This program is free software; you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation; either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program; if not, see http://www.gnu.org/licenses
+#     or write to the Free Software Foundation,Inc., 51 Franklin Street,
+#     Fifth Floor, Boston, MA 02110-1301  USA
+
+
+# functions
+error_mes() {
+  case "${1}" in
+    "file"      ) echo "[EE] '${2}' is not a file";;
+    "folder"    ) echo "[EE] Not found '${2}'  folder";;
+    "installdir"    ) echo "[EE] Not found '${2}' folder to installation" && exit 1;;
+    "install"   ) echo "[EE] Installation folder is not set" && exit 1 ;;
+    "nbm"       ) echo "[EE] '${2}' is not a .nbm file";;
+    "unknown"   ) echo "[EE] Unknown error " && exit 1;;
+    "flag"      ) echo "[EE] Unknown flag" && exit 1;;
+  esac
+  return 1
+}
+
+func_help() {
+  echo -e "Script written on BASH to add a package in the repository"
+  echo -e "Usage: repo-insert [ -c /etc/repo-scripts.conf ] [ -v | --version ] [ -h | --help ] PACKAGE1 PACKAGE2 ..."
+  echo -e "Parametrs:"
+  echo -e "  PACKAGE1 PACKAGE2 ...     - Packages to add"
+  echo -e "  -c               PATH     - Path to configuration file. Default is '/etc/repo-scripts.conf'"
+  echo -e "  -h   --help               - Show this help and exit"
+  echo -e "  -d   --no-update          - No update the repository"
+  echo -e "  -s	  --check              - Check the repository after add package"
+  echo -e "       --nocolor            - Force disable colors"
+  echo -e "  -v   --version            - Show version and exit"
+  echo -e "  -h   --help               - Show this help and exit"
+  exit 0
+}
+
+func_ver() {
+  echo -e "repo-scripts"
+  echo -e "A set of scripts to work with your archlinux repository"
+  echo -e "Version : 1.5.3"
+  echo -e "License : GPLv3"
+  echo -e "Author : Evgeniy Alexeev aka arcanis"
+  echo -e "E-mail : esalexeev (at) gmail (dot) com"
+  exit 0
+}
+
+check_file() {
+	if [ -f ${1} ]; then
+		return 0;
+	else
+		error_mes "file" ${1}
+	fi
+}
+
+check_dir() {
+	if [ -d ${1} ]; then
+		return 0;
+	else
+		error_mes "folder" ${1}
+	fi
+}
+
+check_install_dir() {
+	if [ -d ${1} ]; then
+		return 0;
+	else
+		error_mes "installdir" ${1}
+	fi
+}
+
+
+check_nbm() {
+	#Get Extension
+	NBMEXTENSION="nbm"
+	EXTENSION="${1##*.}"
+	if [[ ${EXTENSION} == ${NBMEXTENSION} ]]; then
+		return 0;
+	else
+		error_mes "nbm" ${1}
+	fi
+}
+
+NBMLIST=()
+NETBEANSFOLDER="netbeans"
+PACKEXTENSION="*.jar.pack.gz"
+ROOTDIR=$(pwd)
+INSTALL="no"
+INSTALLFOLDER="./netbeans"
+
+# parametrs parsing
+until [ -z $1 ]; do
+  case "$1" in
+    "-h" | "--help"         ) func_help                                                        ;;
+    "-v" | "--version"      ) func_ver                                                         ;;
+    "-i" | "--install"      ) [ -z "${2}" ] && error_mes "install" || check_install_dir "${2}" && INSTALLFOLDER="${2}" && INSTALL="yes" && shift  ;;
+    *                       ) NBMLIST+=("${1}")                                                ;;
+  esac
+  shift
+done
+
+for NBM in ${NBMLIST[@]}; do
+	echo ${NBM}
+	cd ${ROOTDIR}
+	if  check_file ${NBM} ; then
+		if check_nbm ${NBM}; then
+			FILENAME="${NBM%.*}"
+			echo "[II] '${FILENAME}' is a netbeans module"
+			/usr/bin/mkdir -p ${FILENAME}
+			echo "[II] Unzip module"
+			/usr/bin/unzip -o ${NBM} -d ${FILENAME}
+			cd ${FILENAME}
+			if check_dir "${NETBEANSFOLDER}"; then
+				echo "[II] Unpack '${PACKEXTENSION}' files"
+				PACKLIST=$(find . -name ${PACKEXTENSION} -type f)
+				PACKAGESROOT=${PWD}
+				for PACK in ${PACKLIST[@]}; do
+					cd ${PACKAGESROOT}
+					PACKAGEDIR=$(dirname ${PACK})
+					PACKAGENAME=$(basename ${PACK})
+					PACKAGEWHITOUTEXT=${PACKAGENAME%%.*}
+					cd ${PACKAGEDIR}
+					/usr/bin/unpack200 -r ${PACKAGENAME} "${PACKAGEWHITOUTEXT}.jar"
+					if [ ${INSTALL} == "yes" ]; then
+						echo "[II] Installing '${FILENAME}' in '${INSTALLFOLDER}'"
+						cd ${ROOTDIR}
+						/usr/bin/mv -f  ${PACKAGESROOT}/${NETBEANSFOLDER}/* ${INSTALLFOLDER}/
+						/usr/bin/rm -rf ${PACKAGESROOT}
+					fi
+				done
+			fi
+		fi
+	fi
+done
+
+
+
+
